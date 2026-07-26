@@ -1975,7 +1975,12 @@ function hapusSemua() {
 /* ================= MULAI ================= */
 muat();
 if (db.profil.guru) { 
-    // If already logged in, fetch latest students from cloud on load
+    // 1. HIDE LANDING & LOGIN STAGES ON RELOAD
+    document.getElementById('landing-stage').style.display = 'none';
+    document.getElementById('login-stage').style.display = 'none';
+    document.getElementById('dashboard-stage').style.display = 'block';
+
+    // 2. Fetch latest students from cloud on load
     if (db.profil.id) {
         fetch(`https://sigap-backendthehans-production.up.railway.app/api/students?teacher_id=${db.profil.id}`)
             .then(res => res.json())
@@ -1991,5 +1996,8 @@ if (db.profil.guru) {
         layarBeranda(); 
     }
 } else { 
-    layarOnboard(); 
+    // Make sure the landing stage is visible if not logged in
+    document.getElementById('landing-stage').style.display = 'flex';
+    document.getElementById('login-stage').style.display = 'none';
+    document.getElementById('dashboard-stage').style.display = 'none';
 }
