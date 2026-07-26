@@ -48,6 +48,11 @@ document.getElementById('btn-login').addEventListener('click', async () => {
             // Login matches the database!
             alert(`Selamat datang, ${data.user.name}!`);
             
+            db.profil.guru = data.user.name;
+            db.profil.nip = data.user.nip;
+            db.profil.id = data.user.id; 
+            simpan();
+
             try {
                 const studentRes = await fetch(`https://sigap-backendthehans-production.up.railway.app/api/students?teacher_id=${data.user.id}`);
                 const studentJson = await studentRes.json();
