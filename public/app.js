@@ -48,11 +48,16 @@ document.getElementById('btn-login').addEventListener('click', async () => {
             // Login matches the database!
             alert(`Selamat datang, ${data.user.name}!`);
             
-            // UPDATE: Pass the verified name, NIP, AND the database ID
-            db.profil.guru = data.user.name;
-            db.profil.nip = data.user.nip;
-            db.profil.id = data.user.id; // <-- ADD THIS LINE
-            simpan();
+            try {
+                const studentRes = await fetch(`https://sigap-backendthehans-production.up.railway.app/api/students?teacher_id=${data.user.id}`);
+                const studentJson = await studentRes.json();
+                if (studentJson.success) {
+                    db.siswa = studentJson.data.map(s => ({ id: s.id, nama: s.name, aktif: s.is_active }));
+                    simpan();
+                }
+            } catch (err) {
+                console.error("Gagal memuat siswa dari cloud:", err);
+            }
 
             // Transition to the dashboard
             loginStage.style.display = 'none';
@@ -1969,4 +1974,22 @@ function hapusSemua() {
 
 /* ================= MULAI ================= */
 muat();
-if (db.profil.guru) { layarBeranda(); } else { layarOnboard(); }
+if (db.profil.guru) { 
+    // If already logged in, fetch latest students from cloud on load
+    if (db.profil.id) {
+        fetch(`https://sigap-backendthehans-production.up.railway.app/api/students?teacher_id=${db.profil.id}`)
+            .then(res => res.json())
+            .then(studentJson => {
+                if (studentJson.success) {
+                    db.siswa = studentJson.data.map(s => ({ id: s.id, nama: s.name, aktif: s.is_active }));
+                    simpan();
+                }
+                layarBeranda();
+            })
+            .catch(() => layarBeranda());
+    } else {
+        layarBeranda(); 
+    }
+} else { 
+    layarOnboard(); 
+}
