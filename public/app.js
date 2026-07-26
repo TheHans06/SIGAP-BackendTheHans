@@ -490,15 +490,6 @@ function layarBeranda() {
           <p class="sub" style="margin-top:2px">Kelas ${esc(db.profil.kelas)} · ${siswaAktif().length} siswa · ${esc(db.profil.tahun)}</p>
         </div>
       </div>
-      <div style="display:flex;gap:8px">
-        <span class="tbl-bulat" onclick="prosesLogout()" role="button" aria-label="Keluar" title="Keluar Portal" style="color:#A32D2D">🚪</span>
-        <span class="tbl-bulat" onclick="layarBantuan()" role="button" aria-label="Bantuan">❓</span>
-        <span class="tbl-bulat" onclick="layarPengaturan()" role="button" aria-label="Pengaturan">⚙️</span>
-      </div>
-      <div style="display:flex;gap:8px">
-        <span class="tbl-bulat" onclick="layarBantuan()" role="button" aria-label="Bantuan">❓</span>
-        <span class="tbl-bulat" onclick="layarPengaturan()" role="button" aria-label="Pengaturan">⚙️</span>
-      </div>
     </div>
     ${peringatanCadangan()}
     <div class="kartu" style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
@@ -566,12 +557,21 @@ const STATUS = [
   ['H', 'Hadir', '#1D9E75'], ['S', 'Sakit', '#EF9F27'], ['I', 'Izin', '#4A90D9'],
   ['A', 'Alpa', '#C0392B'], ['T', 'Terlambat', '#D4537E']
 ];
+
 function absMuatDraft() {
   absDraft = {}; const d = db.absensi[absTgl] || {};
   siswaAktif().forEach(s => { absDraft[s.id] = d[s.id] ? { s: d[s.id].s, ket: d[s.id].ket || '' } : null; });
 }
+
 function layarAbsensi(muatUlang = true) {
   if (muatUlang) absMuatDraft();
+
+  const terisi = t => db.absensi[t] && Object.keys(db.absensi[t]).length > 0;
+  const riwayat = [1, 2, 3, 4, 5].map(n => {
+    const t = tglISO(new Date(new Date(absTgl + 'T00:00:00').getTime() - n * 864e5));
+    return { t, ada: terisi(t) };
+  });
+
   tampilkan(`
     <div class="kepala">
       <span class="tbl-bulat" onclick="layarBeranda()" role="button" aria-label="Kembali">←</span>
@@ -580,7 +580,9 @@ function layarAbsensi(muatUlang = true) {
       <span class="tbl-bulat" onclick="layarRekapAbsensi()" role="button" aria-label="Rekap" title="Rekap">📊</span>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+      <span class="tbl-bulat" style="width:34px;height:34px" onclick="absGeser(-1)">‹</span>
       <input type="date" id="abs-tgl" value="${absTgl}" style="flex:1" onchange="absGantiTanggal(this.value)">
+      <span class="tbl-bulat" style="width:34px;height:34px" onclick="absGeser(1)">›</span>
       <span class="tbl-bulat" style="width:34px;height:34px" title="Tandai libur/masuk" role="button" onclick="kalToggle(absTgl,()=>layarAbsensi(false))">${statusHari(absTgl).libur ? '🏫' : '🏖️'}</span>
       <button class="tbl-garis" onclick="absSemuaHadir()">✓ Semua hadir</button>
     </div>
@@ -600,8 +602,11 @@ function layarAbsensi(muatUlang = true) {
 
     <button class="tbl-utama" style="margin-top:14px" onclick="absSimpan()">💾 Simpan absensi</button>
     ${serverAktif() ? `<button class="tbl-garis" style="width:100%;margin-top:8px" onclick="svSinkronAbsensi()">☁️ Sinkronkan ke server</button>` : ''}
-    <p class="info-kecil" style="text-align:center">Ketuk huruf status di tiap siswa. Kolom keterangan muncul otomatis untuk S/I/A/T.</p>`, 'absensi');
+    <p class="info-kecil" style="text-align:center;line-height:1.6">📅 5 hari sebelumnya: 
+      ${riwayat.map(r => `<span style="cursor:pointer;font-size:14px" title="${tglIndo(r.t)}" onclick="absGantiTanggal('${r.t}')">${r.ada ? '✅' : '⬜'}</span>`).join(' ')}<br>
+    Ketuk huruf status di tiap siswa. Kolom keterangan otomatis muncul untuk S/I/A/T.</p>`, 'absensi');
 }
+
 function absBarisHTML(s, i) {
   const d = absDraft[s.id];
   return `
@@ -622,6 +627,7 @@ function absBarisHTML(s, i) {
     </div>
   </div>`;
 }
+
 function absHitungHTML() {
   const c = { H: 0, S: 0, I: 0, A: 0, T: 0 }; let belum = 0;
   siswaAktif().forEach(s => { const d = absDraft[s.id]; if (d) c[d.s]++; else belum++; });
@@ -631,6 +637,7 @@ function absHitungHTML() {
       <b style="font-weight:600">${c[k]}</b> ${k}</span>`).join('') +
     (belum ? `<span style="flex:1;text-align:center;background:rgba(138,132,172,.15);border-radius:12px;padding:6px 0;font-size:11.5px;color:#6B648F"><b style="font-weight:600">${belum}</b> ？</span>` : '');
 }
+
 function absSet(id, st) {
   const ket = document.getElementById('abs-ket-' + id);
   absDraft[id] = { s: st, ket: ket ? ket.value : '' };
@@ -642,13 +649,21 @@ function absSet(id, st) {
   document.getElementById('abs-note-' + id).style.display = (st === 'H') ? 'none' : 'flex';
   document.getElementById('abs-hitung').innerHTML = absHitungHTML();
 }
+
 function absSemuaHadir() {
   siswaAktif().forEach(s => { absDraft[s.id] = { s: 'H', ket: '' }; });
   layarAbsensi(false); toast('Semua ditandai hadir ✓ — ubah yang berhalangan');
 }
+
 function absGantiTanggal(t) {
   if (!t) return; absTgl = t; layarAbsensi();
 }
+
+function absGeser(arah) {
+  const d = new Date(absTgl + 'T00:00:00'); d.setDate(d.getDate() + arah);
+  absGantiTanggal(tglISO(d));
+}
+
 async function absSimpan() {
     const isi = {}; 
     let terisi = 0;
@@ -1698,8 +1713,14 @@ function layarPengaturan() {
 
     <div class="kartu" style="margin-bottom:12px">
       <p style="font-size:12.5px;font-weight:600;color:var(--ungu);margin-bottom:10px">👩‍🏫 Identitas</p>
-      <div class="grup"><label>Nama wali kelas</label><input type="text" id="p-guru" value="${esc(db.profil.guru)}"></div>
-      <div class="grup"><label>NIP</label><input type="text" id="p-nip" inputmode="numeric" value="${esc(db.profil.nip)}"></div>
+      <div class="grup">
+        <label>Nama wali kelas (Sesuai Database)</label>
+        <input type="text" id="p-guru" value="${esc(db.profil.guru)}" readonly style="background: rgba(0,0,0,0.05); color: #6B648F; cursor: not-allowed;">
+      </div>
+      <div class="grup">
+        <label>NIP</label>
+        <input type="text" id="p-nip" inputmode="numeric" value="${esc(db.profil.nip)}" readonly style="background: rgba(0,0,0,0.05); color: #6B648F; cursor: not-allowed;">
+      </div>
       <div class="grup"><label>Foto guru</label>
         <div style="display:flex;align-items:center;gap:10px">
           ${db.profil.foto ? `<img src="${db.profil.foto}" alt="Foto guru" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.95)">` : `<span style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.6);border:.5px dashed rgba(83,74,183,.35);display:flex;align-items:center;justify-content:center;font-size:22px">🧑‍🏫</span>`}
