@@ -1759,7 +1759,10 @@ function layarPengaturan() {
           <input type="file" id="berkas-foto" accept="image/*" style="display:none" onchange="unggahFoto(this)">
         </div>
       </div>
-      <div class="grup"><label>Nama sekolah</label><input type="text" id="p-sekolah" value="${esc(db.profil.sekolah)}" placeholder="cth: SDN 042 GAMBIR"></div>
+      <div class="grup">
+        <label>Nama sekolah</label>
+        <input type="text" id="p-sekolah" value="${esc(db.profil.sekolah)}" readonly style="background: rgba(0,0,0,0.05); color: #6B648F; cursor: not-allowed;">
+      </div>
       <div class="grup"><label>Logo sekolah</label>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           ${db.profil.logo ? `<img src="${db.profil.logo}" alt="Logo" style="width:48px;height:48px;border-radius:12px;object-fit:contain;background:rgba(255,255,255,.85);border:.5px solid var(--kaca-tepi)">` : `<span style="width:48px;height:48px;border-radius:12px;background:rgba(255,255,255,.6);border:.5px dashed rgba(83,74,183,.35);display:flex;align-items:center;justify-content:center;font-size:21px">🏫</span>`}
