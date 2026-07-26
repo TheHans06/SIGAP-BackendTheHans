@@ -1,0 +1,633 @@
+:root {
+  --ungu: #534AB7;
+  --ungu-tua: #2A2547;
+  --ungu-teks: #6B648F;
+  --ungu-muda: #8A84AC;
+  --hijau: #1D9E75;
+  --hijau-teks: #085041;
+  --oranye: #EF9F27;
+  --oranye-teks: #854F0B;
+  --biru-teks: #185FA5;
+  --merah-teks: #A32D2D;
+  --pink: #D4537E;
+  --kaca: rgba(255, 255, 255, .62);
+  --kaca-tepi: rgba(255, 255, 255, .95);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent
+}
+
+html,
+body {
+  height: 100%
+}
+
+/*<--- Landing Page & Login Page Tweaks --->*/
+#landing-stage, #login-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh; 
+    text-align: center;
+    padding: 20px;
+    
+    /* Keep it looking like a mobile app on desktop */
+    max-width: 480px; 
+    margin: 0 auto; 
+}
+
+/* Control the giant logo */
+#landing-stage img {
+    max-width: 220px; /* Shrinks the logo to a reasonable size */
+    border-radius: 25%;
+    height: auto;
+    margin: 25px 0;
+    filter: drop-shadow(0px 8px 16px rgba(83, 74, 183, 0.15)); /* Adds a nice soft shadow */
+}
+
+/* Space out the login elements */
+#login-stage h2 {
+    margin-bottom: 25px;
+    color: var(--ungu-tua);
+}
+
+#login-stage input {
+    margin-bottom: 16px;
+    width: 100%;
+}
+
+#login-stage button {
+    margin-top: 10px;
+}
+/*<--- /landing page --->*/
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #EDEBF7;
+  color: var(--ungu-tua);
+  overflow-x: hidden;
+}
+
+/* ===== Latar aurora ===== */
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: .55;
+  /* animation:apung 26s ease-in-out infinite alternate */
+}
+
+.b1 {
+  width: 340px;
+  height: 340px;
+  background: #AFA9EC;
+  top: -100px;
+  right: -120px
+}
+
+.b2 {
+  width: 300px;
+  height: 300px;
+  background: #F4C0D1;
+  top: 35%;
+  left: -140px;
+  animation-duration: 32s;
+  animation-delay: -8s
+}
+
+.b3 {
+  width: 360px;
+  height: 360px;
+  background: #9FE1CB;
+  bottom: -140px;
+  right: -90px;
+  animation-duration: 38s;
+  animation-delay: -16s;
+}
+
+.b4 {
+  width: 220px;
+  height: 220px;
+  background: #FAC775;
+  top: 12%;
+  left: 30%;
+  opacity: .35;
+  animation-duration: 44s;
+  animation-delay: -22s;
+}
+
+@keyframes apung {
+  0% {
+    transform: translate(0, 0) scale(1)
+  }
+
+  50% {
+    transform: translate(40px, -50px) scale(1.12)
+  }
+
+  100% {
+    transform: translate(-45px, 35px) scale(.94)
+  }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .blob {
+    animation: none
+  }
+
+  .layar {
+    transition: none !important
+  }
+}
+
+/* ===== Kerangka & transisi layar ===== */
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh
+}
+
+.layar {
+  position: absolute;
+  inset: 0;
+  padding: 1.4rem 1.15rem 2.5rem;
+  min-height: 100dvh;
+  opacity: 0;
+  transform: translateX(26px);
+  pointer-events: none;
+  transition: opacity .32s ease, transform .32s cubic-bezier(.32, .72, .35, 1);
+}
+
+.layar.aktif {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+  position: relative
+}
+
+.layar.keluar {
+  opacity: 0;
+  transform: translateX(-18px)
+}
+
+/* ===== Komponen kaca ===== */
+.kartu {
+  background: var(--kaca);
+  border: .5px solid var(--kaca-tepi);
+  border-radius: 20px;
+  /* backdrop-filter:blur(16px); */
+  /* -webkit-backdrop-filter:blur(16px); */
+  padding: 14px 16px
+}
+
+.tbl-bulat {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--kaca);
+  border: .5px solid var(--kaca-tepi);
+  /* backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px); */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  cursor: pointer;
+  color: var(--ungu);
+  flex: none
+}
+
+.tbl-utama {
+  width: 100%;
+  background: var(--ungu);
+  color: #EEEDFE;
+  border: none;
+  font-weight: 600;
+  font-size: 15px;
+  border-radius: 999px;
+  padding: 13px 0;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform .15s ease, opacity .15s
+}
+
+.tbl-utama:active {
+  transform: scale(.97)
+}
+
+.tbl-utama:disabled {
+  opacity: .45
+}
+
+.tbl-garis {
+  background: rgba(255, 255, 255, .55);
+  color: var(--ungu);
+  border: .5px solid var(--kaca-tepi);
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: 999px;
+  padding: 9px 16px;
+  cursor: pointer;
+  font-family: inherit
+}
+
+input[type=text],
+input[type=number],
+input[type=password], /* <--- ADD THIS LINE */
+textarea,
+select {
+  width: 100%;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ungu-tua);
+  background: rgba(255, 255, 255, .78);
+  border: .5px solid rgba(83, 74, 183, .22);
+  border-radius: 12px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--ungu);
+  box-shadow: 0 0 0 3px rgba(83, 74, 183, .14)
+}
+
+label {
+  font-size: 12.5px;
+  color: var(--ungu-teks);
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500
+}
+
+.grup {
+  margin-bottom: 13px
+}
+
+h1 {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -.3px
+}
+
+.sub {
+  font-size: 12.5px;
+  color: var(--ungu-muda)
+}
+
+.kepala {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 16px
+}
+
+.kepala .isi {
+  flex: 1;
+  min-width: 0
+}
+
+.pil {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px
+}
+
+.pil-hijau {
+  color: var(--hijau-teks);
+  background: rgba(93, 202, 165, .32)
+}
+
+.pil-oranye {
+  color: var(--oranye-teks);
+  background: rgba(250, 199, 117, .38)
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(83, 74, 183, .12);
+  color: var(--ungu);
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer
+}
+
+.chip .x {
+  font-weight: 700;
+  opacity: .6
+}
+
+.baris-siswa {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 4px;
+  border-bottom: .5px solid rgba(83, 74, 183, .1)
+}
+
+.baris-siswa:last-child {
+  border-bottom: none
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  flex: none
+}
+
+.av0 {
+  background: #FBEAF0;
+  color: #72243E
+}
+
+.av1 {
+  background: #FAEEDA;
+  color: #633806
+}
+
+.av2 {
+  background: #E1F5EE;
+  color: #085041
+}
+
+.av3 {
+  background: #E6F1FB;
+  color: #0C447C
+}
+
+.hapus-kecil {
+  border: none;
+  background: none;
+  color: #C4788F;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 4px
+}
+
+/* Ubin menu beranda */
+.ubin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px
+}
+
+.ubin {
+  background: var(--kaca);
+  border: .5px solid var(--kaca-tepi);
+  border-radius: 20px;
+  padding: 16px 14px;
+  cursor: pointer;
+  /* backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px); */
+  transition: transform .15s ease
+}
+
+.ubin:active {
+  transform: scale(.96)
+}
+
+.ubin .ikon {
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 23px
+}
+
+.ubin p.n {
+  margin-top: 10px;
+  font-size: 14.5px;
+  font-weight: 600
+}
+
+.ubin p.d {
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--ungu-muda)
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%) translateY(80px);
+  z-index: 50;
+  background: rgba(42, 37, 71, .92);
+  color: #EEEDFE;
+  font-size: 13px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  transition: transform .3s cubic-bezier(.32, .72, .35, 1);
+  max-width: 85vw;
+  text-align: center
+}
+
+.toast.tampil {
+  transform: translateX(-50%) translateY(0)
+}
+
+.langkah-titik {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin: 14px 0 4px
+}
+
+.titik {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(83, 74, 183, .25);
+  transition: all .3s
+}
+
+.titik.aktif {
+  background: var(--ungu);
+  width: 20px;
+  border-radius: 99px
+}
+
+.info-kecil {
+  font-size: 12px;
+  color: var(--ungu-muda);
+  line-height: 1.5;
+  margin-top: 8px
+}
+
+/* ===== Cetak laporan ===== */
+#area-cetak {
+  display: none
+}
+
+@media print {
+  body {
+    background: #fff
+  }
+
+  .aurora,
+  .app,
+  .toast {
+    display: none !important
+  }
+
+  #area-cetak {
+    display: block !important;
+    color: #000;
+    font-family: 'Times New Roman', Georgia, serif;
+    padding: 0
+  }
+
+  #area-cetak table {
+    width: 100%;
+    border-collapse: collapse
+  }
+
+  #area-cetak th,
+  #area-cetak td {
+    border: 1px solid #000;
+    padding: 4px 7px;
+    font-size: 10.5pt
+  }
+
+  #area-cetak th {
+    background: #eee
+  }
+}
+
+/* ===== Tata letak desktop (layar lebar) ===== */
+.daftar-adaptif {
+  display: flex;
+  flex-direction: column;
+  gap: 8px
+}
+
+.sisi {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 224px;
+  z-index: 2;
+  flex-direction: column;
+  padding: 1.3rem .9rem;
+  background: rgba(255, 255, 255, .52);
+  border-right: .5px solid rgba(255, 255, 255, .95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px)
+}
+
+.sisi .item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 13px;
+  border-radius: 13px;
+  margin-bottom: 4px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ungu-teks);
+  cursor: pointer;
+  transition: background .15s, transform .1s
+}
+
+.sisi .item.aktif {
+  background: var(--ungu);
+  color: #EEEDFE
+}
+
+.sisi .item:not(.aktif):hover {
+  background: rgba(255, 255, 255, .75)
+}
+
+.sisi .item:active {
+  transform: scale(.97)
+}
+
+@media (min-width:900px) {
+  .sisi {
+    display: flex
+  }
+
+  .app {
+    margin-left: 248px;
+    max-width: 900px
+  }
+
+  .layar {
+    padding: 2rem 2.4rem 3rem
+  }
+
+  .ubin:hover {
+    transform: translateY(-3px)
+  }
+
+  .kartu {
+    transition: transform .15s ease
+  }
+
+  .ubin-grid {
+    grid-template-columns: repeat(4, 1fr)
+  }
+
+  .daftar-adaptif {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-items: start
+  }
+
+  .kolom-kartu {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    align-items: start
+  }
+
+  .kolom-kartu>.kartu {
+    margin-bottom: 0 !important
+  }
+
+  .layar[data-nama="onboard"],
+  .layar[data-nama="jurnal"],
+  .layar[data-nama="nilai-isi"],
+  .layar[data-nama="bantuan"] {
+    max-width: 660px;
+    margin: 0 auto
+  }
+}

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" href="img/SIGAP_icon.PNG" type="image/x-icon">
+    <title>SIGAP · Sistem Administrasi Guru Praktis</title>
+</head>
+<body>
+    <!-- STAGE 1: The Landing Page (Visible by default) -->
+    <div id="landing-stage" class="app-section">
+        <h1>SIGAP</h1>
+        <img src="img/SIGAP_logo.PNG" alt="Logo-SIGAP">
+        <p>Sistem Administrasi Guru Praktis • SDN 042 Gambir</p>
+        <button id="btn-to-login" class="tbl-utama">Masuk Portal Guru</button>
+    </div>
+
+<!-- STAGE 2: The Login Screen (Hidden by default) -->
+    <div id="login-stage" class="app-section" style="display: none;">
+        <h2>Verifikasi Guru</h2>
+        <input type="number" id="input-nip" placeholder="Masukkan NIP">
+        <input type="password" id="input-pin" inputmode="numeric" placeholder="6 Digit PIN">
+        <button id="btn-login" class="tbl-utama">Login</button>
+    </div>
+
+    <!-- STAGE 3: The Main Dashboard (Hidden by default) -->
+    <div id="dashboard-stage" class="app-section" style="display: none;">
+        <!-- A Nendy's original attendance UI goes in here! -->
+        <div class="aurora" aria-hidden="true">
+            <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+            <div class="blob b4"></div>
+        </div>
+
+        <nav class="sisi" id="sisi" aria-label="Navigasi"></nav>
+        <div class="app" id="app"></div>
+        <div class="toast" id="toast"></div>
+        <div id="area-cetak"></div>
+    </div>
+    
+    
+
+    <script src="app.js"></script>
+</body>
+</html>
