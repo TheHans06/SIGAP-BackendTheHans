@@ -631,3 +631,30 @@ h1 {
     margin: 0 auto
   }
 }
+
+/* --- MOBILE SIDEBAR SLIDE DARI KIRI --- */
+.tutup-sisi-btn { display: none; }
+.tombol-menu-mobile { display: none !important; }
+
+@media (max-width: 768px) {
+  #sisi {
+    position: fixed;
+    top: 0;
+    left: -100%; /* Sembunyi di luar layar sebelah kiri */
+    height: 100vh;
+    width: 260px;
+    z-index: 9999;
+    background: #F4F3FB; /* Ganti kalau background color SIGAP kamu beda */
+    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+  }
+  
+  /* Class yang ditambah saat hamburger di-klik */
+  #sisi.buka-sisi {
+    left: 0; 
+  }
+
+  .tutup-sisi-btn { display: block !important; }
+  .tombol-menu-mobile { display: flex !important; }
+}

@@ -218,10 +218,13 @@ const PETA_SISI = {
 
 function gambarSisi(nama) {
   const el = document.getElementById('sisi'); if (!el) return;
+  
   if (nama === 'onboard' || !db.profil.guru) { el.style.display = 'none'; return; }
   el.style.display = '';
   const aktif = PETA_SISI[nama] || '';
-  const item = (id, em, label, fn) => `<div class="item ${aktif === id ? 'aktif' : ''}" onclick="${fn}" role="button">${em} <span>${label}</span></div>`;
+
+  const item = (id, em, label, fn) => `<div class="item ${aktif === id ? 'aktif' : ''}" onclick="${fn}; document.getElementById('sisi').classList.remove('buka-sisi');" role="button">${em} <span>${label}</span></div>`;
+
   el.innerHTML = `
     <div style="display:flex;align-items:center;gap:9px;padding:0 4px">
       ${db.profil.logo ? `<img src="${db.profil.logo}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;background:rgba(255,255,255,.85)">` : `<span style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.75);display:flex;align-items:center;justify-content:center;font-size:17px">🏫</span>`}
@@ -248,7 +251,11 @@ function gambarSisi(nama) {
       </div>
     </div>
     <button class="tbl-garis" style="width:100%; margin-top:12px; color:#A32D2D; border-color:rgba(163,45,45,.3);" onclick="prosesLogout()">🚪 Keluar Portal</button>
-    <p style="font-size:10px;color:var(--ungu-muda);margin-top:8px;text-align:center">SIGAP v1.1 ⚡</p>`;
+    <p style="font-size:10px;color:var(--ungu-muda);margin-top:8px;text-align:center">SIGAP v0.8b ⚡
+    </p>
+    <p style="font-size:10px;color:var(--ungu-muda);margin-top:8px;text-align:center">
+    <br><b style="color:var(--ungu)">Developed by TheHans06 & Nendy</b>
+    </p>`;
 }
 function toast(pesan) {
   const t = document.getElementById('toast');
@@ -494,6 +501,9 @@ function layarBeranda() {
           <p style="margin-top:3px;font-size:12px;font-weight:600;color:var(--ungu);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(db.profil.guru)}${db.profil.nip ? ' · NIP ' + esc(db.profil.nip) : ''}</p>
           <p class="sub" style="margin-top:2px">Kelas ${esc(db.profil.kelas)} · ${siswaAktif().length} siswa · ${esc(db.profil.tahun)}</p>
         </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <span class="tbl-bulat tombol-menu-mobile" onclick="document.getElementById('sisi').classList.add('buka-sisi')" role="button" aria-label="Menu" title="Buka Menu" style="font-size:22px; width:44px; height:44px; align-items:center; justify-content:center;">☰</span>
       </div>
     </div>
     ${peringatanCadangan()}
@@ -995,6 +1005,9 @@ function layarNilai() {
         <input type="date" id="nl-tgl" value="${tglISO()}" style="width:135px">
       </div>
       <button class="tbl-utama" style="margin-top:10px" onclick="nlTambah()">Buat &amp; isi nilai ➜</button>
+      <div class="kartu" style="margin-top:14px; border-color:rgba(250,199,117,.9); padding:11px 14px; background:rgba(250,199,117,.15)">
+        <p style="font-size:12.5px; color:#854F0B; line-height:1.5">⚠️ <b>Fitur masih dikembangkan:</b> Mohon feedbacknya jika ada fitur yang belum sempurna.</p>
+      </div>
     </div>`, 'nilai');
 }
 function nlTambah() {
@@ -1206,7 +1219,11 @@ function layarJurnal(muatUlang = true) {
     <button class="tbl-utama" onclick="jrSimpan()">💾 Simpan jurnal</button>
     <p class="info-kecil" style="text-align:center">📅 5 hari sebelumnya:
       ${riwayat.map(r => `<span style="cursor:pointer" onclick="jrGantiTanggal('${r.t}')">${r.ada ? '✅' : '⬜'}</span>`).join(' ')}
-      — ketuk kotaknya untuk membuka. Catatan sikap 🧐/😊 otomatis muncul di laporan siswa.</p>`, 'jurnal');
+      — ketuk kotaknya untuk membuka. Catatan sikap 🧐/😊 otomatis muncul di laporan siswa.
+    </p>
+    <div class="kartu" style="margin-top:14px; border-color:rgba(250,199,117,.9); padding:11px 14px; background:rgba(250,199,117,.15)">
+      <p style="font-size:12.5px; color:#854F0B; line-height:1.5">⚠️ <b>Fitur masih dikembangkan:</b> Mohon feedbacknya jika ada fitur yang belum sempurna.</p>
+    </div>`, 'jurnal');
 }
 function jrGantiTanggal(t) { if (!t) return; jrTgl = t; jrMuatDraft(); layarJurnal(false); }
 function jrGeser(arah) {
@@ -1334,6 +1351,9 @@ function layarEskul() {
         </div>`;
       }).join('')}
     </div>
+    <div class="kartu" style="margin-top:14px; border-color:rgba(250,199,117,.9); padding:11px 14px; background:rgba(250,199,117,.15)">
+      <p style="font-size:12.5px; color:#854F0B; line-height:1.5">⚠️ <b>Fitur masih dikembangkan:</b> Mohon feedbacknya jika ada fitur yang belum sempurna.</p>
+    </div>
   `, 'eskul');
 }
 
@@ -1437,7 +1457,11 @@ function layarLaporan() {
   }).join('')}
       </table>
     </div>
-    <p class="info-kecil">Ketuk nama siswa untuk laporan lengkap &amp; cetak 🖨️. Rata NA = rata-rata nilai akhir berbobot semua mapel (bobot: ${['harian', 'tugas', 'sts', 'sas'].map(k => jenisLabel(k) + ' ' + db.bobot[k] + '%').join(', ')}).</p>`, 'laporan');
+    <p class="info-kecil">Ketuk nama siswa untuk laporan lengkap &amp; cetak 🖨️. Rata NA = rata-rata nilai akhir berbobot semua mapel (bobot: ${['harian', 'tugas', 'sts', 'sas'].map(k => jenisLabel(k) + ' ' + db.bobot[k] + '%').join(', ')}).
+    </p>
+    <div class="kartu" style="margin-top:14px; border-color:rgba(250,199,117,.9); padding:11px 14px; background:rgba(250,199,117,.15)">
+      <p style="font-size:12.5px; color:#854F0B; line-height:1.5">⚠️ <b>Fitur masih dikembangkan:</b> Mohon feedbacknya jika ada fitur yang belum sempurna.</p>
+    </div>`, 'laporan');
 }
 function layarLaporanSiswa(sid) {
   const s = db.siswa.find(x => x.id === sid); if (!s) { layarLaporan(); return; }
