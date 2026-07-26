@@ -51,6 +51,7 @@ document.getElementById('btn-login').addEventListener('click', async () => {
             db.profil.guru = data.user.name;
             db.profil.nip = data.user.nip;
             db.profil.id = data.user.id; 
+            db.profil.sekolah = 'SDN 042 Gambir';
             simpan();
 
             try {
