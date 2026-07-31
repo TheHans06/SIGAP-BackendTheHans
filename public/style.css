@@ -638,6 +638,7 @@ h1 {
 
 @media (max-width: 768px) {
   #sisi {
+    display: flex !important;
     position: fixed;
     top: 0;
     left: -100%; /* Sembunyi di luar layar sebelah kiri */
