@@ -64,6 +64,32 @@ document.getElementById('btn-login').addEventListener('click', async () => {
             } catch (err) {
                 console.error("Gagal memuat siswa dari cloud:", err);
             }
+            try {
+                // Asumsi endpoint GET absensinya formatnya mirip dengan students
+                const attRes = await fetch(`https://sigap-backendthehans-production.up.railway.app/api/attendance?teacher_id=${data.user.id}`);
+                const attJson = await attRes.json();
+                
+                if (attJson.success) {
+                    // Reset absensi lokal biar murni dari Cloud (Source of Truth)
+                    db.absensi = {}; 
+                    
+                    // Mapping data dari format database ke format objek lokal SIGAP
+                    attJson.data.forEach(record => {
+                        // Pastikan objek tanggalnya udah ada
+                        if (!db.absensi[record.date]) {
+                            db.absensi[record.date] = {};
+                        }
+                        // Masukin data siswanya
+                        db.absensi[record.date][record.student_id] = {
+                            s: record.status,
+                            ket: record.note || ''
+                        };
+                    });
+                    simpan();
+                }
+            } catch (err) {
+                console.error("Gagal memuat riwayat absensi dari cloud:", err);
+            }
 
             // Transition to the dashboard
             loginStage.style.display = 'none';
@@ -109,8 +135,8 @@ const DATA_AWAL = {
   mapel: ['Matematika', 'Bahasa Indonesia', 'IPAS', 'PPKn', 'Pendidikan Agama', 'PJOK', 'Seni'],
   daftarEskul: ['Pramuka', 'Seni Tari', 'Futsal', 'Pencak Silat', 'Qasidah', 'Tahsin', 'STEM', 'Aksara Sunda', 'Angklung', 'Keyboard'],
   nilaiEskul: {},
-  bobot: { harian: 40, tugas: 20, sts: 20, sas: 20 },
-  labelJenis: { harian: 'Harian', tugas: 'Tugas', sts: 'STS', sas: 'SAS' },
+  bobot: { uh1: 5, uh2: 5, uh3: 5, uh4: 5, tgs1: 8, tgs2: 8, tgs3: 8, tgs4: 8, tgs5: 8, sts: 20, sas: 20 },
+  labelJenis: { uh1: 'UH 1', uh2: 'UH 2', uh3: 'UH 3', uh4: 'UH 4', tgs1: 'Tugas 1', tgs2: 'Tugas 2', tgs3: 'Tugas 3', tgs4: 'Tugas 4', tgs5: 'Tugas 5', sts: 'STS', sas: 'SAS' },
   kalender: { libur: {}, masuk: {} }, // libur/masuk kustom sesuai kalender pendidikan satuan
   server: { url: '', guru: null, terakhirSinkron: null }, // koneksi ke backend Apps Script
   absensi: {},          // { 'YYYY-MM-DD': { idSiswa:{s:'H',ket:''} } }
@@ -121,6 +147,11 @@ let db = null;
 function muat() {
   try { db = JSON.parse(localStorage.getItem(KUNCI)); } catch (e) { db = null; }
   if (!db || !db.versi) { db = JSON.parse(JSON.stringify(DATA_AWAL)); }
+  if (db.labelJenis && db.labelJenis.harian) {
+      db.labelJenis = JSON.parse(JSON.stringify(DATA_AWAL.labelJenis));
+      db.bobot = JSON.parse(JSON.stringify(DATA_AWAL.bobot));
+      db.nilai = {}; 
+  }
   if (!db.labelJenis) db.labelJenis = { harian: 'Harian', tugas: 'Tugas', sts: 'STS', sas: 'SAS' };
   if (!db.daftarEskul) db.daftarEskul = [...DATA_AWAL.daftarEskul];
   if (!db.nilaiEskul) db.nilaiEskul = {};
@@ -932,15 +963,26 @@ function rkEkspor() {
 }
 
 /* ================= NILAI ================= */
-let nlMapel = null, nlJenis = 'harian';
-const JENIS = [['harian', 'Harian'], ['tugas', 'Tugas'], ['sts', 'STS'], ['sas', 'SAS']];
+let nlMapel = null, nlJenis = 'uh1';
+const JENIS = [
+  ['uh1', 'UH 1'], ['uh2', 'UH 2'], ['uh3', 'UH 3'], ['uh4', 'UH 4'],
+  ['tgs1', 'Tugas 1'], ['tgs2', 'Tugas 2'], ['tgs3', 'Tugas 3'], ['tgs4', 'Tugas 4'], ['tgs5', 'Tugas 5'],
+  ['sts', 'STS'], ['sas', 'SAS']
+];
 const KKM = 75;
 function jenisLabel(j) { return (db.labelJenis && db.labelJenis[j]) || JENIS.find(x => x[0] === j)[1]; }
+
 function nlData() {
   if (!nlMapel || !db.mapel.includes(nlMapel)) nlMapel = db.mapel[0] || null;
   if (!nlMapel) return null;
   if (!db.nilai[nlMapel]) db.nilai[nlMapel] = {};
-  JENIS.forEach(([j]) => { if (!db.nilai[nlMapel][j]) db.nilai[nlMapel][j] = []; });
+  const tgl = tglISO();
+  JENIS.forEach(([j, l]) => { 
+    // Otomatis buatin 1 kertas penilaian per tab biar guru langsung bisa isi!
+    if (!db.nilai[nlMapel][j] || db.nilai[nlMapel][j].length === 0) {
+      db.nilai[nlMapel][j] = [{ id: idBaru(), nama: l, tgl, skor: {} }];
+    } 
+  });
   return db.nilai[nlMapel];
 }
 function nlRata(p) {
@@ -962,10 +1004,10 @@ function layarNilai() {
         <span onclick="nlMapel='${esc(m)}';layarNilai()" style="white-space:nowrap;font-size:12px;font-weight:600;padding:7px 14px;border-radius:999px;cursor:pointer;flex:none;
         ${m === nlMapel ? 'background:var(--ungu);color:#EEEDFE' : 'background:rgba(255,255,255,.6);border:.5px solid var(--kaca-tepi);color:var(--ungu)'}">${esc(m)}</span>`).join('')}
     </div>
-    <div style="display:flex;background:rgba(255,255,255,.55);border:.5px solid var(--kaca-tepi);border-radius:999px;padding:4px;margin-bottom:12px">
+    <div style="display:flex;overflow-x:auto;background:rgba(255,255,255,.55);border:.5px solid var(--kaca-tepi);border-radius:18px;padding:4px;margin-bottom:12px;gap:4px;">
       ${JENIS.map(([j, l]) => `
-        <span onclick="nlJenis='${j}';layarNilai()" style="flex:1;text-align:center;font-size:12.5px;font-weight:600;padding:7px 0;border-radius:999px;cursor:pointer;
-        ${j === nlJenis ? 'background:rgba(255,255,255,.95);color:#2A2547' : 'color:#8A84AC'}">${esc(jenisLabel(j))}</span>`).join('')}
+        <span onclick="nlJenis='${j}';layarNilai()" style="flex:none;text-align:center;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:999px;cursor:pointer;
+        ${j === nlJenis ? 'background:rgba(255,255,255,.95);color:#2A2547;box-shadow:0 1px 3px rgba(0,0,0,0.1)' : 'color:#8A84AC'}">${esc(jenisLabel(j))}</span>`).join('')}
     </div>
     ${(() => {
       const g = daftar.slice().sort((a, b) => a.tgl < b.tgl ? -1 : 1)
@@ -1458,7 +1500,7 @@ function layarLaporan() {
   }).join('')}
       </table>
     </div>
-    <p class="info-kecil">Ketuk nama siswa untuk laporan lengkap &amp; cetak 🖨️. Rata NA = rata-rata nilai akhir berbobot semua mapel (bobot: ${['harian', 'tugas', 'sts', 'sas'].map(k => jenisLabel(k) + ' ' + db.bobot[k] + '%').join(', ')}).
+    <p class="info-kecil">Ketuk nama siswa untuk laporan lengkap &amp; cetak 🖨️. Rata NA = rata-rata nilai akhir berbobot semua mapel (bobot: ${JENIS.map(x => x[0]).map(k => jenisLabel(k) + ' ' + db.bobot[k] + '%').join(', ')}).
     </p>
     <div class="kartu" style="margin-top:14px; border-color:rgba(250,199,117,.9); padding:11px 14px; background:rgba(250,199,117,.15)">
       <p style="font-size:12.5px; color:#854F0B; line-height:1.5">⚠️ <b>Fitur masih dikembangkan:</b> Mohon feedbacknya jika ada fitur yang belum sempurna.</p>
@@ -1486,14 +1528,14 @@ function layarLaporanSiswa(sid) {
       <table style="width:100%;border-collapse:collapse;font-size:11.5px;min-width:320px">
         <tr style="color:#6B648F">
           <th style="text-align:left;padding:6px;font-weight:600">Mapel</th>
-          ${['harian', 'tugas', 'sts', 'sas'].map(j => `<th style="padding:6px 3px">${esc(jenisLabel(j))}</th>`).join('')}
+          ${JENIS.map(x => x[0]).map(j => `<th style="padding:6px 3px">${esc(jenisLabel(j))}</th>`).join('')}
           <th style="padding:6px 4px">NA</th>
         </tr>
         ${db.mapel.map(m => {
     const r = lpNA(m, sid, uji);
     return `<tr style="border-top:.5px solid rgba(83,74,183,.1)">
             <td style="padding:7px 6px;white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis">${esc(m)}</td>
-            ${['harian', 'tugas', 'sts', 'sas'].map(j => `<td style="text-align:center;color:${r.detail[j] === null ? '#C9C5E2' : r.detail[j] >= KKM ? '#2A2547' : '#854F0B'}">${r.detail[j] === null ? '·' : r.detail[j]}</td>`).join('')}
+            ${JENIS.map(x => x[0]).map(j => `<td style="text-align:center;color:${r.detail[j] === null ? '#C9C5E2' : r.detail[j] >= KKM ? '#2A2547' : '#854F0B'}">${r.detail[j] === null ? '·' : r.detail[j]}</td>`).join('')}
             <td style="text-align:center;font-weight:700;color:${r.na === null ? '#8A84AC' : r.na >= KKM ? '#085041' : '#854F0B'}">${r.na === null ? '—' : r.na}</td>
           </tr>`;
   }).join('')}
@@ -1526,7 +1568,7 @@ function lpEkspor() {
   const { label, uji } = lpRentang(); const P = db.profil; const s = ';';
   let csv = '\uFEFF' + 'LAPORAN HASIL BELAJAR\n';
   csv += 'Sekolah' + s + P.sekolah + '\nKelas' + s + P.kelas + ' (' + P.tahun + ')\nPeriode' + s + label + '\n';
-  csv += 'Bobot' + s + ['harian', 'tugas', 'sts', 'sas'].map(k => jenisLabel(k) + ' ' + db.bobot[k] + '%').join(', ') + '\n\n';
+  csv += 'Bobot' + s + JENIS.map(x => x[0]).map(k => jenisLabel(k) + ' ' + db.bobot[k] + '%').join(', ') + '\n\n';
   csv += 'No' + s + 'Nama' + s + db.mapel.join(s) + s + 'Rata-rata' + s + '% Kehadiran' + s + 'Catatan sikap\n';
   siswaAktif().forEach((sw, i) => {
     const nas = db.mapel.map(m => { const r = lpNA(m, sw.id, uji); return r.na === null ? '-' : r.na; });
@@ -1567,12 +1609,12 @@ function cetakSiswa(sid) {
     <p style="font-size:11pt;font-weight:bold;margin-bottom:4px">A. Nilai Akademik</p>
     <table style="margin-bottom:12px">
       <tr><th>No</th><th style="text-align:left">Mata pelajaran</th>
-        ${['harian', 'tugas', 'sts', 'sas'].map(j => `<th>${esc(jenisLabel(j))}</th>`).join('')}
+        ${JENIS.map(x => x[0]).map(j => `<th>${esc(jenisLabel(j))}</th>`).join('')}
         <th>Nilai akhir</th></tr>
       ${db.mapel.map((m, x) => {
     const r = lpNA(m, sid, uji);
     return `<tr><td style="text-align:center">${x + 1}</td><td>${esc(m)}</td>
-          ${['harian', 'tugas', 'sts', 'sas'].map(j => `<td style="text-align:center">${r.detail[j] === null ? '-' : r.detail[j]}</td>`).join('')}
+          ${JENIS.map(x => x[0]).map(j => `<td style="text-align:center">${r.detail[j] === null ? '-' : r.detail[j]}</td>`).join('')}
           <td style="text-align:center;font-weight:bold">${r.na === null ? '-' : r.na}</td></tr>`;
   }).join('')}
       <tr><td colspan="${2 + 4}" style="text-align:right;font-weight:bold">Rata-rata</td>
@@ -1817,7 +1859,7 @@ function layarPengaturan() {
       <p style="font-size:12.5px;font-weight:600;color:var(--ungu);margin-bottom:4px">🏷️ Nama jenis nilai</p>
       <p class="sub" style="margin-bottom:10px">Sesuaikan dengan istilah sekolah Anda, mis. PH, PTS, PAS</p>
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
-        ${['harian', 'tugas', 'sts', 'sas'].map(k => `
+        ${JENIS.map(x => x[0]).map(k => `
           <div><label>Semula "${k === 'sts' ? 'STS' : k === 'sas' ? 'SAS' : k[0].toUpperCase() + k.slice(1)}"</label>
           <input type="text" id="lj-${k}" maxlength="12" value="${esc(jenisLabel(k))}"></div>`).join('')}
       </div>
@@ -1828,7 +1870,7 @@ function layarPengaturan() {
       <p style="font-size:12.5px;font-weight:600;color:var(--ungu);margin-bottom:4px">⚖️ Bobot nilai akhir (%)</p>
       <p class="sub" style="margin-bottom:10px">Jumlah keempatnya harus 100</p>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
-        ${['harian', 'tugas', 'sts', 'sas'].map(k => `
+        ${JENIS.map(x => x[0]).map(k => `
           <div><label>${esc(jenisLabel(k))}</label>
           <input type="number" id="b-${k}" min="0" max="100" value="${db.bobot[k]}"></div>`).join('')}
       </div>
@@ -1954,8 +1996,8 @@ function hapusMapel(i) {
   db.mapel.splice(i, 1); simpan(); layarPengaturan();
 }
 function simpanBobot() {
-  const b = { harian: +val('b-harian') || 0, tugas: +val('b-tugas') || 0, sts: +val('b-sts') || 0, sas: +val('b-sas') || 0 };
-  const jml = b.harian + b.tugas + b.sts + b.sas;
+  const b = {}; let jml = 0;
+  JENIS.forEach(([k]) => { b[k] = +val('b-' + k) || 0; jml += b[k]; });
   if (jml !== 100) { toast('Jumlah bobot saat ini ' + jml + '%. Harus pas 100% ya'); return; }
   db.bobot = b; simpan(); toast('Bobot nilai disimpan ✅');
 }
@@ -1969,8 +2011,12 @@ function kalHapus(jenis, t) {
   delete db.kalender[jenis][t]; simpan(); layarPengaturan(); toast('Entri kalender dihapus');
 }
 function simpanLabelJenis() {
-  const l = { harian: val('lj-harian'), tugas: val('lj-tugas'), sts: val('lj-sts'), sas: val('lj-sas') };
-  if (!l.harian || !l.tugas || !l.sts || !l.sas) { toast('Semua nama jenis harus diisi 🙏'); return; }
+  const l = {}; let adaKosong = false;
+  JENIS.forEach(([k]) => {
+    l[k] = val('lj-' + k);
+    if(!l[k]) adaKosong = true;
+  });
+  if (adaKosong) { toast('Semua nama jenis harus diisi 🙏'); return; }
   db.labelJenis = l; simpan(); layarPengaturan(); toast('Nama jenis nilai disimpan ✅');
 }
 function unduhCadangan() {
